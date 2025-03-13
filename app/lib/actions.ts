@@ -110,12 +110,20 @@ export async function updateInvoice(
     redirect('/dashboard/invoices');
   }
 
-export async function deleteInvoice(id: string) {
-    throw new Error('Failed to Delete Invoice');
-
-    await sql`DELETE FROM invoices WHERE id = ${id}`;
-    revalidatePath('/dashboard/invoices');
-}
+  export async function deleteInvoice(id: string) {
+    try {
+      const result = await sql`DELETE FROM invoices WHERE id = ${id}`;
+  
+      if (result.count === 0) {
+        throw new Error('Invoice not found'); // IDが見つからなかった場合
+      }
+  
+      revalidatePath('/dashboard/invoices'); // キャッシュを更新
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      throw new Error('Failed to delete invoice');
+    }
+  }
 
 export async function authenticate(
     prevState: string | undefined,
